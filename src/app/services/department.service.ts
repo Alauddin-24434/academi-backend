@@ -1,5 +1,5 @@
 import { IDepartmentCreatePayload } from "../interfaces/department.interface";
-import { prisma } from "../shared/prisma-client";
+import prisma from "../shared/prisma-client";
 
 export const createDepartment = async (data: IDepartmentCreatePayload) => {
   return prisma.department.create({ data });

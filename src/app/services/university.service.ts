@@ -1,5 +1,5 @@
 import { IUniversityCreatePayload } from "../interfaces/university.interface";
-import { prisma } from "../shared/prisma-client";
+import prisma from "../shared/prisma-client";
 
 export const createUniversity = async (payload: IUniversityCreatePayload) => {
   return prisma.university.create({ data: payload });

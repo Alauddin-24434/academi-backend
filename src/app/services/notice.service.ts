@@ -1,5 +1,5 @@
 import { INoticeCreatePayload } from "../interfaces/notice.interface";
-import { prisma } from "../shared/prisma-client";
+import prisma from "../shared/prisma-client";
 
 export const createNotice = async (data: INoticeCreatePayload) => {
   return prisma.notice.create({ data });

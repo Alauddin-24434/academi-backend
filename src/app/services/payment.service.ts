@@ -1,5 +1,6 @@
-import { prisma } from "../shared/prisma-client";
+
 import { IPaymentCreatePayload } from "../interfaces/payment.interface";
+import prisma from "../shared/prisma-client";
 
 export const createPayment = async (data: IPaymentCreatePayload) => {
   return prisma.payment.create({ data });

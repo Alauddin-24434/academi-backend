@@ -1,5 +1,6 @@
-import { prisma } from "../shared/prisma-client";
+
 import { ICircularCreatePayload } from "../interfaces/circular.interface";
+import prisma from "../shared/prisma-client";
 
 export const createCircular = async (data: ICircularCreatePayload) => {
   return prisma.circular.create({ data });

@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { AppError } from "../error/appError";
 import { IRegisterUserPayload, ILoginUserPayload } from "../interfaces/user.interfaces";
-import { prisma } from "../shared/prisma-client";
+import prisma from "../shared/prisma-client";
 
 const registerUserIntoDb = async (payload: IRegisterUserPayload) => {
   const isExistUser = await prisma.user.findUnique({

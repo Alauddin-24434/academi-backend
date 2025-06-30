@@ -1,6 +1,6 @@
-// src/services/application.service.ts
-import { prisma } from "../shared/prisma-client";
+
 import { IApplicationCreatePayload } from "../interfaces/application.interface";
+import prisma from "../shared/prisma-client";
 
 export const createApplication = async (data: IApplicationCreatePayload) => {
   return prisma.application.create({ data });

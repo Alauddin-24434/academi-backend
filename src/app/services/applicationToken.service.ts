@@ -1,5 +1,6 @@
-import { prisma } from "../shared/prisma-client";
+
 import { IApplicationTokenPayload } from "../interfaces/applicationToken.interface";
+import prisma from "../shared/prisma-client";
 
 export const createApplicationToken = async (data: IApplicationTokenPayload) => {
   return prisma.applicationToken.create({ data });
