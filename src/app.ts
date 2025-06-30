@@ -3,6 +3,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { userRoutes } from "./app/routes/user.route";
 import { universityRoutes } from "./app/routes/university.routes";
+import { applicationRoutes } from "./app/routes/application.route";
+import { departmentRoutes } from "./app/routes/department.rpote";
 
 const app: Application = express();
 
@@ -20,6 +22,8 @@ app.get("/status", (req: Request, res: Response) => {
 
 app.use(userRoutes)
 app.use(universityRoutes)
+app.use(applicationRoutes)
+app.use(departmentRoutes)
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({
