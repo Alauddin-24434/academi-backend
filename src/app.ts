@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import { userRoutes } from "./app/routes/user.route";
 import { universityRoutes } from "./app/routes/university.routes";
 import { applicationRoutes } from "./app/routes/application.route";
-import { departmentRoutes } from "./app/routes/department.rpote";
+import { departmentRoutes } from "./app/routes/department.route";
 
 const app: Application = express();
 
