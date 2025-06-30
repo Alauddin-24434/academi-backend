@@ -1,0 +1,177 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================= ENUM ==================
+enum UserRole {
+  STUDENT
+  UNIVERSITY_ADMIN
+  SUPER_ADMIN
+}
+
+enum ApplicationStatus {
+  PENDING
+  WAITING
+  CONFIRMED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentType {
+  APPLICATION
+  ADMISSION
+}
+
+enum UniversityType {
+  PUBLIC
+  PRIVATE
+  INTERNATIONAL
+}
+
+// ================= MODEL: User ==================
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(STUDENT)
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relations
+
+  applications     Application[]
+  Payment          Payment[]
+  ApplicationToken ApplicationToken?
+}
+
+// ================MODEL:University========================
+
+model University {
+  id             String         @id @default(ulid())
+  name           String
+  code           String         @unique
+  location       String
+  email          String?
+  phone          String?
+  logoUrl        String?
+  websiteUrl     String?
+  applicationFee Int?
+  type           UniversityType
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Relations
+  departments  Department[]
+  notices      Notice[]
+  circulars    Circular[]
+  applications Application[]
+}
+
+// ================= MODEL: Department ==================
+model Department {
+  id           String   @id @default(uuid())
+  name         String
+  code         String
+  seatCapacity Int
+  universityId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  university   University    @relation(fields: [universityId], references: [id])
+  applications Application[]
+}
+
+// ================= MODEL: Application ==================
+model Application {
+  id           String            @id @default(uuid())
+  userId       String
+  universityId String
+  departmentId String
+  status       ApplicationStatus @default(PENDING)
+  round        Int               @default(1)
+  createdAt    DateTime          @default(now())
+
+  // ✅ Board related fields directly in application
+  boardName      String
+  registrationNo String
+  rollNo         String
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id])
+  university University @relation(fields: [universityId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+  payment    Payment?
+}
+
+// ================= MODEL: Payment ==================
+model Payment {
+  id            String        @id @default(uuid())
+  userId        String
+  applicationId String?       @unique
+  amount        Int
+  type          PaymentType
+  status        PaymentStatus
+  transactionId String
+  round         Int           @default(1)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+
+  user        User         @relation(fields: [userId], references: [id])
+  application Application? @relation(fields: [applicationId], references: [id])
+}
+
+// ================= MODEL: Circular ==================
+model Circular {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  fileUrl      String?
+  universityId String?
+  publishedAt  DateTime @default(now())
+
+  university University? @relation(fields: [universityId], references: [id])
+}
+
+// ================= MODEL: Notice ==================
+model Notice {
+  id           String   @id @default(cuid())
+  title        String
+  content      String
+  universityId String
+  publishedAt  DateTime @default(now())
+
+  university University @relation(fields: [universityId], references: [id])
+}
+
+// ================= MODEL: ApplicationToken ==================
+model ApplicationToken {
+  id      String   @id @default(cuid())
+  userId  String   @unique
+  round   Int
+  amount  Int
+  paidAt  DateTime
+  isValid Boolean  @default(true)
+
+  user User @relation(fields: [userId], references: [id])
+}
