@@ -1,12 +1,12 @@
 import express from "express";
 import * as noticeController from "../controllers/notice.controller";
 
-const noticeRouter = express.Router();
+const router = express.Router();
 
-noticeRouter.post("/", noticeController.createNotice);
-noticeRouter.get("/", noticeController.getAllNotices);
-noticeRouter.get("/:id", noticeController.getNoticeById);
-noticeRouter.put("/:id", noticeController.updateNotice);
-noticeRouter.delete("/:id", noticeController.deleteNotice);
+router.post("/", noticeController.createNotice);
+router.get("/", noticeController.getAllNotices);
+router.get("/:id", noticeController.getNoticeById);
+router.put("/:id", noticeController.updateNotice);
+router.delete("/:id", noticeController.deleteNotice);
 
-export default noticeRouter;
+export const noticeRoutes= router;

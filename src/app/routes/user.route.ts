@@ -1,10 +1,10 @@
-import express from "express";
-import { loginUser, refreshTokenHandler, registrationUser } from "../controllers/user.controller";
+import express from 'express';
+import * as userController from '../controllers/user.controller';
 
 const router = express.Router();
 
-router.post("/register", registrationUser);
-router.post("/login", loginUser);
-router.post("/refresh-token", refreshTokenHandler);
+router.post('/', userController.registrationUser);         
+router.post('/login', userController.loginUser);            
+router.post('/refresh-token', userController.refreshTokenHandler); 
 
-export const userRoutes=router;
+export const userRoutes= router;
