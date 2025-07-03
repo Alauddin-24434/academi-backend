@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { AppError } from "../error/appError";
-import { IRegisterUserPayload, ILoginUserPayload } from "../interfaces/user.interfaces";
+import { IRegisterUserPayload, ILoginUserPayload, IOAuthUserInfo, OAuthProvider } from "../interfaces/user.interfaces";
 import prisma from "../shared/prisma-client";
 
 const registerUserIntoDb = async (payload: IRegisterUserPayload) => {
@@ -12,10 +12,11 @@ const registerUserIntoDb = async (payload: IRegisterUserPayload) => {
     throw new AppError(409, "User already exists");
   }
 
-  // Password hash
-  const hashedPassword = await bcrypt.hash(payload.password, 10);
+  // Hash password only if method is CUSTOM
+  const hashedPassword = payload.method === OAuthProvider.CUSTOM
+    ? await bcrypt.hash(payload.password, 10)
+    : "";
 
-  // Create new user
   const newUser = await prisma.user.create({
     data: {
       name: payload.name,
@@ -23,6 +24,7 @@ const registerUserIntoDb = async (payload: IRegisterUserPayload) => {
       password: hashedPassword,
       phone: payload.phone,
       role: payload.role || "STUDENT",
+      method: payload.method || OAuthProvider.CUSTOM,
     },
   });
 
@@ -38,7 +40,10 @@ const loginUserFromDb = async (payload: ILoginUserPayload) => {
     throw new AppError(401, "Invalid email or password");
   }
 
-  // Password check
+  if (user.method !== OAuthProvider.CUSTOM) {
+    throw new AppError(401, `Please login using ${user.method.toLowerCase()}`);
+  }
+
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
 
   if (!isPasswordValid) {
@@ -52,8 +57,42 @@ const getUserById = async (id: string) => {
   return prisma.user.findUnique({ where: { id } });
 };
 
+const findOrCreateOAuthUser = async (userInfo: IOAuthUserInfo, method: OAuthProvider) => {
+
+  console.log("Finding or creating OAuth user:", userInfo.email, "Method:", method);
+  // Find existing user by email
+  let user = await prisma.user.findUnique({
+    where: { email: userInfo.email },
+  });
+
+  if (!user) {
+    // Create new user with OAuth info
+    user = await prisma.user.create({
+      data: {
+        name: userInfo.name,
+        email: userInfo.email,
+        password: "", // no password for OAuth user
+        phone: userInfo.phone || null,
+        role: "STUDENT",
+        method,
+        // if you have avatar field in your DB model, add here
+        avatar: userInfo.avatar|| null,
+      },
+    });
+  } else if (user.method !== method) {
+    // User exists but used different auth provider earlier
+    throw new AppError(
+      400,
+      `User already registered with different auth method: ${user.method.toLowerCase()}`
+    );
+  }
+
+  return user;
+};
+
 export const userServices = {
   registerUserIntoDb,
   loginUserFromDb,
   getUserById,
+  findOrCreateOAuthUser,
 };

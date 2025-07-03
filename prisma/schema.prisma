@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  
 }
 
 datasource db {
@@ -45,17 +44,26 @@ enum UniversityType {
   INTERNATIONAL
 }
 
+enum MethodType {
+  CUSTOM
+  GOOGLE
+  FACEBOOK
+  GITHUB
+}
+
 // ================= MODEL: User ==================
 
 model User {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
-  email     String   @unique
+  email     String     @unique
+  avatar    String?
   password  String
-  role      UserRole @default(STUDENT)
+  role      UserRole   @default(STUDENT)
+  method    MethodType @default(CUSTOM)
   phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   //relations
 
