@@ -1,39 +1,63 @@
-import axios from "axios";
-import qs from "querystring";
-import config from "../../config";
+// utils/googleToken.ts
+import axios from 'axios';
+import config from '../../config';
 
-export const getGoogleAuthURL = () => {
-  const queryParams = qs.stringify({
-    client_id: config.googleClientId,
+
+
+
+// utils/googleAuth.ts
+import querystring from 'querystring';
+
+export const getGoogleAuthURL = (): string => {
+  const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+  const options = {
     redirect_uri: config.googleRedirectUri,
-    response_type: "code",
-    scope: "openid email profile",
-    access_type: "offline",
-    prompt: "consent",
-  });
+    client_id: config.googleClientId,
+    access_type: 'offline',
+    response_type: 'code',
+    prompt: 'consent',
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ].join(' '),
+  };
 
-  return `https://accounts.google.com/o/oauth2/v2/auth?${queryParams}`;
+  return `${rootUrl}?${querystring.stringify(options)}`;
 };
+
+
+
+
+
+
+
 
 export const getGoogleTokens = async (code: string) => {
-  const { data } = await axios.post(
-    "https://oauth2.googleapis.com/token",
-    qs.stringify({
-      code,
-      client_id: config.googleClientId,
-      client_secret: config.googleClientSecret,
-      redirect_uri: config.googleRedirectUri,
-      grant_type: "authorization_code",
-    }),
-    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-  );
+  const url = 'https://oauth2.googleapis.com/token';
 
-  return data;
+  const values = {
+    code,
+    client_id: config.googleClientId,
+    client_secret: config.googleClientSecret,
+    redirect_uri: config.googleRedirectUri,
+    grant_type: 'authorization_code',
+  };
+
+  const res = await axios.post(url, values, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+
+  return res.data;
 };
 
-export const getGoogleUserInfo = async (access_token: string) => {
-  const { data } = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
-    headers: { Authorization: `Bearer ${access_token}` },
+export const getGoogleUserInfo = async (accessToken: string) => {
+  const res = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   });
-  return data;
+
+  return res.data;
 };

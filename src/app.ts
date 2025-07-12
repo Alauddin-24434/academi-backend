@@ -2,6 +2,9 @@ import express, { Application, NextFunction, Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./app/api";
+import { error } from "console";
+import { AppError } from "./app/error/appError";
+import globalErrorHandler from "./app/middlewares/globalErrorHandeller";
 
 const app: Application = express();
 
@@ -27,5 +30,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     message: "!Ops api not found",
   });
 });
+
+
+app.use(globalErrorHandler)
 
 export default app;

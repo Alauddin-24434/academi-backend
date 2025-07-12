@@ -76,16 +76,11 @@ const findOrCreateOAuthUser = async (userInfo: IOAuthUserInfo, method: OAuthProv
         role: "STUDENT",
         method,
         // if you have avatar field in your DB model, add here
-        avatar: userInfo.avatar|| null,
+        avatar: userInfo.avatar || null,
       },
     });
-  } else if (user.method !== method) {
-    // User exists but used different auth provider earlier
-    throw new AppError(
-      400,
-      `User already registered with different auth method: ${user.method.toLowerCase()}`
-    );
   }
+
 
   return user;
 };
