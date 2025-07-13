@@ -1,5 +1,3 @@
-// src/controllers/auth.controller.ts
-
 import { Request, Response } from "express";
 import { AppError } from "../error/appError";
 import { catchAsync } from "../middlewares/catchAsync";
@@ -137,22 +135,17 @@ export const refreshTokenHandler = catchAsync(async (req: Request, res: Response
   });
 });
 
-
-
-//======================== Oauth Handlers ========================
-
-// ✅ Google Login Redirect
+// =========================
+// ✅ Google OAuth Redirect
+// =========================
 export const googleLoginRedirect = catchAsync(async (req, res) => {
-  console.log("Redirecting to Google OAuth");
-
   res.redirect(getGoogleAuthURL());
-
 });
 
-// ✅ Google Callback
+// =========================
+// ✅ Google OAuth Callback
+// =========================
 export const googleCallback = catchAsync(async (req, res) => {
-  console.log("✅ [Google] User Info:");
-
   const code = req.query.code as string;
   const { access_token } = await getGoogleTokens(code);
   const userInfo = await getGoogleUserInfo(access_token);
@@ -166,17 +159,12 @@ export const googleCallback = catchAsync(async (req, res) => {
     OAuthProvider.GOOGLE
   );
 
-  // 🚨 Check if user used different auth method before
   if (user.method !== OAuthProvider.GOOGLE) {
     const message = `User already registered with different auth method: ${user.method.toLowerCase()}`;
-     console.log("warning1")
     const encodedMessage = encodeURIComponent(message);
     return res.redirect(`http://localhost:3000/oauth/error?status=400&message=${encodedMessage}`);
   }
 
-  console.log("warning")
-
-  // ✅ Generate tokens
   const accessToken = generateAccessToken({
     id: user.id,
     email: user.email,
@@ -189,7 +177,6 @@ export const googleCallback = catchAsync(async (req, res) => {
     role: user.role,
   });
 
-  // ✅ Set refresh token cookie
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: config.nodeEnv === "production",
@@ -197,25 +184,24 @@ export const googleCallback = catchAsync(async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  // ✅ Redirect to frontend with access token
   res.redirect(`http://localhost:3000/oauth/success?token=${accessToken}`);
 });
 
-
-// ✅ GitHub Login Redirect
+// =========================
+// ✅ GitHub OAuth Redirect
+// =========================
 export const githubLoginRedirect = catchAsync(async (req, res) => {
   res.redirect(getGithubAuthURL());
 });
 
-// ✅ GitHub Callback
+// =========================
+// ✅ GitHub OAuth Callback
+// =========================
 export const githubCallback = catchAsync(async (req, res) => {
   const code = req.query.code as string;
 
   const { access_token } = await getGithubTokens(code);
   const userInfo = await getGithubUserInfo(access_token);
-
-  console.log("✅ [GITHUB] User Info:");
-  console.log(userInfo);
 
   const user = await userServices.findOrCreateOAuthUser(
     {
@@ -225,15 +211,13 @@ export const githubCallback = catchAsync(async (req, res) => {
     },
     OAuthProvider.GITHUB
   );
-  // 🚨 Check if user used different auth method before
+
   if (user.method !== OAuthProvider.GITHUB) {
     const message = `User already registered with different auth method: ${user.method.toLowerCase()}`;
-     console.log("warning1")
     const encodedMessage = encodeURIComponent(message);
     return res.redirect(`http://localhost:3000/oauth/error?status=400&message=${encodedMessage}`);
   }
 
-  console.log("warning")
   const accessToken = generateAccessToken({
     id: user.id,
     email: user.email,
@@ -252,8 +236,6 @@ export const githubCallback = catchAsync(async (req, res) => {
     sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-
-
 
   res.redirect(`http://localhost:3000/oauth/success?token=${accessToken}`);
 });

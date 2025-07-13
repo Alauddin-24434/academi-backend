@@ -5,28 +5,34 @@ import { AppError } from "../error/appError";
 
 export const createDepartment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const department = await departmentService.createDepartment(req.body);
-  res.status(201).json({ success: true, data: department });
+  res.status(201).json({ success: true, message: "Department created successfully", data: department });
 });
 
 export const getDepartmentById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const department = await departmentService.getDepartmentById(req.params.id);
-  if (!department) throw new AppError(404, "Department not found");
-  res.json({ success: true, data: department });
+  if (!department) {
+    throw new AppError(404, "Department not found", "NotFoundError");
+  }
+  res.status(200).json({ success: true, message: "Department retrieved successfully", data: department });
 });
 
 export const getAllDepartments = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const departments = await departmentService.getAllDepartments();
-  res.json({ success: true, data: departments });
+  res.status(200).json({ success: true, message: "Departments retrieved successfully", data: departments });
 });
 
 export const updateDepartment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const department = await departmentService.updateDepartment(req.params.id, req.body);
-  if (!department) throw new AppError(404, "Department not found");
-  res.json({ success: true, data: department });
+  if (!department) {
+    throw new AppError(404, "Department not found", "NotFoundError");
+  }
+  res.status(200).json({ success: true, message: "Department updated successfully", data: department });
 });
 
 export const deleteDepartment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const department = await departmentService.deleteDepartment(req.params.id);
-  if (!department) throw new AppError(404, "Department not found");
-  res.json({ success: true, message: "Department deleted" });
+  if (!department) {
+    throw new AppError(404, "Department not found", "NotFoundError");
+  }
+  res.status(200).json({ success: true, message: "Department deleted successfully" });
 });

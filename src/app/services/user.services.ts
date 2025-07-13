@@ -9,10 +9,9 @@ const registerUserIntoDb = async (payload: IRegisterUserPayload) => {
   });
 
   if (isExistUser) {
-    throw new AppError(409, "User already exists");
+    throw new AppError(409, "User already exists", "UserConflictError");
   }
 
-  // Hash password only if method is CUSTOM
   const hashedPassword = payload.method === OAuthProvider.CUSTOM
     ? await bcrypt.hash(payload.password, 10)
     : "";
@@ -37,17 +36,17 @@ const loginUserFromDb = async (payload: ILoginUserPayload) => {
   });
 
   if (!user) {
-    throw new AppError(401, "Invalid email or password");
+    throw new AppError(401, "Invalid email or password", "AuthenticationError");
   }
 
   if (user.method !== OAuthProvider.CUSTOM) {
-    throw new AppError(401, `Please login using ${user.method.toLowerCase()}`);
+    throw new AppError(401, `Please login using ${user.method.toLowerCase()}`, "OAuthLoginRequired");
   }
 
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
 
   if (!isPasswordValid) {
-    throw new AppError(401, "Invalid email or password");
+    throw new AppError(401, "Invalid email or password", "AuthenticationError");
   }
 
   return user;
@@ -58,29 +57,25 @@ const getUserById = async (id: string) => {
 };
 
 const findOrCreateOAuthUser = async (userInfo: IOAuthUserInfo, method: OAuthProvider) => {
-
   console.log("Finding or creating OAuth user:", userInfo.email, "Method:", method);
-  // Find existing user by email
+
   let user = await prisma.user.findUnique({
     where: { email: userInfo.email },
   });
 
   if (!user) {
-    // Create new user with OAuth info
     user = await prisma.user.create({
       data: {
         name: userInfo.name,
         email: userInfo.email,
-        password: "", // no password for OAuth user
+        password: "",
         phone: userInfo.phone || null,
         role: "STUDENT",
         method,
-        // if you have avatar field in your DB model, add here
         avatar: userInfo.avatar || null,
       },
     });
   }
-
 
   return user;
 };
