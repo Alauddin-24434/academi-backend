@@ -27,6 +27,7 @@ const config: Config = {
   port: process.env.PORT ? parseInt(process.env.PORT, 10) : 5000,
   nodeEnv: process.env.NODE_ENV || "development",
 
+
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET || "defaultAccessSecret",
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET || "defaultRefreshSecret",
 
