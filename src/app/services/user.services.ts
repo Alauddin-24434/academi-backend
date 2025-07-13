@@ -36,17 +36,17 @@ const loginUserFromDb = async (payload: ILoginUserPayload) => {
   });
 
   if (!user) {
-    throw new AppError(401, "Invalid email or password", "AuthenticationError");
+    throw new AppError(400, "Invalid email or password", "AuthenticationError");
   }
 
   if (user.method !== OAuthProvider.CUSTOM) {
-    throw new AppError(401, `Please login using ${user.method.toLowerCase()}`, "OAuthLoginRequired");
+    throw new AppError(400, `Please login using ${user.method.toLowerCase()}`, "OAuthLoginRequired");
   }
 
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
 
   if (!isPasswordValid) {
-    throw new AppError(401, "Invalid email or password", "AuthenticationError");
+    throw new AppError(400, "Invalid email or password", "AuthenticationError");
   }
 
   return user;

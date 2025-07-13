@@ -16,7 +16,7 @@ import { getGithubAuthURL, getGithubTokens, getGithubUserInfo } from "../utils/o
 // ✅ Custom Registration
 // =========================
 export const registrationUser = catchAsync(async (req: Request, res: Response) => {
-  const payload = req.body;
+  const payload = {...req.body, method:"CUSTOM"}
 
   const user = await userServices.registerUserIntoDb(payload);
 

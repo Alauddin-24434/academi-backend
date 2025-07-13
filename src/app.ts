@@ -2,10 +2,8 @@ import express, { Application, NextFunction, Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./app/api";
-import { error } from "console";
-import { AppError } from "./app/error/appError";
+
 import globalErrorHandler from "./app/middlewares/globalErrorHandeller";
-import prisma from "./app/shared/prisma-client";
 
 const app: Application = express();
 
