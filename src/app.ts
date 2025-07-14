@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Status route
-app.get("/status", (req: Request, res: Response) => {
+app.get("/", (req: Request, res: Response) => {
   res.json({
     success: true,
     message: "Database connected successfully",
