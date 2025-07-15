@@ -1,9 +1,29 @@
 import { IDepartmentCreatePayload } from "../interfaces/department.interface";
 import prisma from "../shared/prisma-client";
 
-export const createDepartment = async (data: IDepartmentCreatePayload) => {
-  return prisma.department.create({ data });
+export const createDepartment = async (payload: IDepartmentCreatePayload) => {
+  // const exists = await prisma.department.findFirst({
+  //   where: {
+  //     universityId: payload.universityId,
+
+  //   },
+  // });
+  // console.log("exists", exists)
+
+  // if (exists) {
+  //   throw new Error("This university already has a department for the selected category.");
+  // }
+
+
+  // যদি না থাকে তাহলে create করো
+  const data = await prisma.department.create({
+    data: payload
+  });
+  console.log("data",data)
+  return data;
+
 };
+
 
 export const getDepartmentById = async (id: string) => {
   return prisma.department.findUnique({ where: { id } });

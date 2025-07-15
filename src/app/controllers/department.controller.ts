@@ -4,7 +4,9 @@ import { catchAsync } from "../middlewares/catchAsync";
 import { AppError } from "../error/appError";
 
 export const createDepartment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  console.log("dep", req.body)
   const department = await departmentService.createDepartment(req.body);
+  console.log(department)
   res.status(201).json({ success: true, message: "Department created successfully", data: department });
 });
 

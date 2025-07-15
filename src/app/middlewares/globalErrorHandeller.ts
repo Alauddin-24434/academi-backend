@@ -6,16 +6,22 @@ const globalErrorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  const statusCode = error.statusCode || 500;
+  const status = error.statusCode || 500;
   const message = error.message || 'Something went wrong!';
-  const errName = error.name || error.name || 'InternalServerError';
+  const name = error.name || error.name || 'InternalServerError';
 
-  res.status(statusCode).json({
+  console.log({
+    status: status,
+    message: message,
+    name: name,
+  })
+
+  res.status(status).json({
     success: false,
-    errName,
+    name,
     message,
-    statusCode,
-    errorDetails: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+    status,
+    stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
   });
 };
 
