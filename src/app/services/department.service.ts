@@ -1,28 +1,31 @@
-import { IDepartmentCreatePayload } from "../interfaces/department.interface";
+import { IGlobalDepartmentCreatePayload } from "../interfaces/globalDepartment.interface";
 import prisma from "../shared/prisma-client";
 
-export const createDepartment = async (payload: IDepartmentCreatePayload) => {
-  // const exists = await prisma.department.findFirst({
-  //   where: {
-  //     universityId: payload.universityId,
-
-  //   },
-  // });
-  // console.log("exists", exists)
-
-  // if (exists) {
-  //   throw new Error("This university already has a department for the selected category.");
-  // }
-
-
-  // যদি না থাকে তাহলে create করো
-  const data = await prisma.department.create({
-    data: payload
+export const createDepartment = async (payload: IGlobalDepartmentCreatePayload) => {
+  // check if department with same name exists under the same university
+  const isExist = await prisma.department.findFirst({
+    where: {
+      name: payload.name,
+     
+    },
   });
-  console.log("data",data)
-  return data;
 
+  if (isExist) {
+    throw new Error("Department  already exist");
+  }
+
+  const data = await prisma.department.create({
+    data: {
+      name: payload.name,
+      code: payload.code,
+      category: payload.category,
+   
+    },
+  });
+
+  return data;
 };
+
 
 
 export const getDepartmentById = async (id: string) => {
@@ -33,7 +36,7 @@ export const getAllDepartments = async () => {
   return prisma.department.findMany();
 };
 
-export const updateDepartment = async (id: string, data: Partial<IDepartmentCreatePayload>) => {
+export const updateDepartment = async (id: string, data: Partial<IGlobalDepartmentCreatePayload>) => {
   return prisma.department.update({ where: { id }, data });
 };
 

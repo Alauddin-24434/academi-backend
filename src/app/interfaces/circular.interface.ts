@@ -3,6 +3,7 @@ export interface ICircularCreatePayload {
   description?: string;
   fileUrl?: string;
   universityId?: string;
+  year:number;
 }
 
 export interface ICircular extends ICircularCreatePayload {

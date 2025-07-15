@@ -4,6 +4,7 @@ import { catchAsync } from "../middlewares/catchAsync";
 import { AppError } from "../error/appError";
 
 export const createApplication = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  
   const application = await applicationService.createApplication(req.body);
   res.status(201).json({ success: true, message: "Application created successfully", data: application });
 });
@@ -23,9 +24,9 @@ export const getAllApplications = catchAsync(async (req: Request, res: Response,
 
 export const updateApplication = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const application = await applicationService.updateApplication(req.params.id, req.body);
-  if (!application) {
-    throw new AppError(404, "Application not found", "NotFoundError");
-  }
+  // if (!application) {
+  //   throw new AppError(404, "Application not found", "NotFoundError");
+  // }
   res.status(200).json({ success: true, message: "Application updated successfully", data: application });
 });
 

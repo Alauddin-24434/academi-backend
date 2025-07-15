@@ -1,15 +1,17 @@
 // src/interfaces/application.interface.ts
 export interface IApplicationCreatePayload {
   userId: string;
-  universityId: string;
-  departmentId: string;
+  universityId: string[];   
+  departmentId: string[]; 
   boardName: string;
   registrationNo: string;
   rollNo: string;
   status?: "PENDING" | "WAITING" | "CONFIRMED" | "REJECTED";
   round?: number;
-  year: number;
+  year?: number;            
+  category: "SCIENCE" | "HUMANITIES" | "COMMERCE";
 }
+
 
 export interface IApplication {
   id: string;
