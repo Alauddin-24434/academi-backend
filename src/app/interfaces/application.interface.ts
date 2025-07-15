@@ -8,6 +8,7 @@ export interface IApplicationCreatePayload {
   rollNo: string;
   status?: "PENDING" | "WAITING" | "CONFIRMED" | "REJECTED";
   round?: number;
+  year: number;
 }
 
 export interface IApplication {
@@ -20,5 +21,6 @@ export interface IApplication {
   rollNo: string;
   status: "PENDING" | "WAITING" | "CONFIRMED" | "REJECTED";
   round: number;
+  year: number;
   createdAt: Date;
 }
