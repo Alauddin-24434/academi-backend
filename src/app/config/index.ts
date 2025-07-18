@@ -1,48 +1,26 @@
 import dotenv from "dotenv";
 
+// Load .env file depending on environment
 dotenv.config();
-
-interface Config {
-  port: number;
-  nodeEnv: string;
-
-  accessTokenSecret: string;
-  refreshTokenSecret: string;
-
-  accessTokenExpire: string;
-  refreshTokenExpire: string;
-
-  googleClientId?: string;
-  googleClientSecret?: string;
-  googleRedirectUri?: string;
-
-  githubClientId?: string;
-  githubClientSecret?: string;
-  githubRedirectUri?: string;
-
-  frontendUrl?: string;
+interface EnvVariable {
+    PORT?: string;
+    JWT_ACCESS_TOKEN_SECRET: string;
+    JWT_REFRESH_TOKEN_SECRET: string;
+    JWT_ACCESS_TOKEN_EXPIRATION: string;
+    JWT_REFRESH_TOKEN_EXPIRATION: string;
+    NODE_ENV?: string;
+    CLIENT_URL?: string;
 }
 
-const config: Config = {
-  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 5000,
-  nodeEnv: process.env.NODE_ENV || "development",
+export const envVariable: EnvVariable = {
+    PORT: process.env.PORT,
+    JWT_ACCESS_TOKEN_SECRET: process.env.JWT_ACCESS_TOKEN_SECRET!,
+    JWT_REFRESH_TOKEN_SECRET: process.env.JWT_REFRESH_TOKEN_SECRET!,
+    JWT_ACCESS_TOKEN_EXPIRATION: (process.env.JWT_ACCESS_TOKEN_EXPIRATION || "15m") as `${number}${'s' | 'm' | 'h' | 'd'}`,
+    JWT_REFRESH_TOKEN_EXPIRATION: (process.env.JWT_REFRESH_TOKEN_EXPIRATION || "7d") as `${number}${'s' | 'm' | 'h' | 'd'}`,
 
 
-  accessTokenSecret: process.env.ACCESS_TOKEN_SECRET || "defaultAccessSecret",
-  refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET || "defaultRefreshSecret",
 
-  accessTokenExpire: process.env.ACCESS_TOKEN_EXPIRE || "15m",
-  refreshTokenExpire: process.env.REFRESH_TOKEN_EXPIRE || "7d",
-
-  googleClientId: process.env.GOOGLE_CLIENT_ID,
-  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  googleRedirectUri: process.env.GOOGLE_REDIRECT_URI,
-
-  githubClientId: process.env.GITHUB_CLIENT_ID,
-  githubClientSecret: process.env.GITHUB_CLIENT_SECRET,
-  githubRedirectUri: process.env.GITHUB_REDIRECT_URI,
-
-  frontendUrl: process.env.FRONTEND_URL,
+    NODE_ENV: process.env.NODE_ENV,
+    CLIENT_URL: process.env.CLIENT_URL,
 };
-
-export default config;

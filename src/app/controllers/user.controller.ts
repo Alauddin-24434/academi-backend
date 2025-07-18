@@ -1,241 +1,213 @@
 import { Request, Response } from "express";
-import { AppError } from "../error/appError";
-import { catchAsync } from "../middlewares/catchAsync";
-import { userServices } from "../services/user.services";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyToken,
-} from "../utils/jwt.utils";
-import config from "../config";
-import { getGoogleAuthURL, getGoogleTokens, getGoogleUserInfo } from "../utils/oauth/google";
-import { OAuthProvider } from "../interfaces/user.interfaces";
-import { getGithubAuthURL, getGithubTokens, getGithubUserInfo } from "../utils/oauth/github";
+import { userService } from "../services/user.service";
+import { createUserSchema, loginSchema, updateUserSchema, } from "../schemas/user.schema";
+import type { ApiResponse } from "../interfaces";
+import { catchAsyncHandler } from "../middleware/catchAsyncHandler";
+import { generateAccessToken, generateRefreshToken, verifyAccessToken, verifyRefreshToken } from "../utils/jwt";
+import { cookieOptions } from "../utils/cookieOptions";
+import bcrypt from "bcrypt";
+import { prisma } from "../lib/prisma";
+// ✅ Function-based controller
 
-// =========================
-// ✅ Custom Registration
-// =========================
-export const registrationUser = catchAsync(async (req: Request, res: Response) => {
-  const payload = {...req.body, method:"CUSTOM"}
 
-  const user = await userServices.registerUserIntoDb(payload);
+// ==================================== Register user===========================================
+const registerUser = catchAsyncHandler(async (req: Request, res: Response) => {
+  const validatedData = createUserSchema.parse(req.body);
+  const user = await userService.createUser(validatedData);
 
-  const accessToken = generateAccessToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
-  const refreshToken = generateRefreshToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+  const payload = { id: user.id, role: user.role };
+  const accessToken = generateAccessToken(payload);
+  const refreshToken = generateRefreshToken(payload);
 
   res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: config.nodeEnv === "production",
-    sameSite: "strict",
+    ...cookieOptions,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
-  res.status(201).json({
+  const response: ApiResponse = {
     success: true,
     message: "User registered successfully",
-    data: {
-      accessToken,
-      user,
-    },
-  });
+    data: { user, accessToken },
+  };
+
+  res.status(201).json(response);
 });
 
-// =========================
-// ✅ Custom Login
-// =========================
-export const loginUser = catchAsync(async (req: Request, res: Response) => {
-  const { email, password } = req.body;
 
-  const user = await userServices.loginUserFromDb({ email, password });
+// ================================Login user==================================================
 
-  const accessToken = generateAccessToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+const loginUser = catchAsyncHandler(async (req: Request, res: Response) => {
+  const validatedData = loginSchema.parse(req.body);
 
-  const refreshToken = generateRefreshToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+  const user = await userService.loginUserByEmail(validatedData.email);
+
+
+  const isPasswordMatched = await bcrypt.compare(validatedData.password, user.password);
+  if (!isPasswordMatched) {
+
+    throw new Error("Invalid email or password")
+
+  }
+
+  // success
+  const payload = { id: user.id, role: user.role };
+  const accessToken = generateAccessToken(payload);
+  const refreshToken = generateRefreshToken(payload);
 
   res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: config.nodeEnv === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    ...cookieOptions,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  res.status(200).json({
+  res.json({
     success: true,
-    message: "User logged in successfully",
-    data: {
-      accessToken,
-      user,
-    },
+    message: "Login successful",
+    data: { user, accessToken },
   });
 });
 
-// =========================
-// ✅ Refresh Access Token
-// =========================
-export const refreshTokenHandler = catchAsync(async (req: Request, res: Response) => {
-  const tokenFromCookie = req.cookies.refreshToken;
+// ======================================Refresh token verify and return acces token ===========================================
+ const refreshAccessToken = catchAsyncHandler(async (req: Request, res: Response) => {
+  const refreshTokenRaw =req.cookies?.refreshToken || (req.headers["x-refresh-token"] as string);
 
-  if (!tokenFromCookie) {
-    throw new AppError(401, "Refresh token missing");
+  if (!refreshTokenRaw) {
+    return res.status(401).json({ success: false, message: "Refresh token missing" });
   }
 
-  const decoded = verifyToken(tokenFromCookie, config.refreshTokenSecret);
-
-  if (!decoded) {
-    throw new AppError(403, "Invalid refresh token");
+  // ✅ Verify the refresh token
+  let decoded;
+  try {
+    decoded = verifyRefreshToken(refreshTokenRaw);
+  } catch (err) {
+    return res.status(403).json({ success: false, message: "Invalid or expired refresh token" });
   }
 
-  const user = await userServices.getUserById((decoded as any).id);
+  // ✅ Find the user
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.id },
+  });
+
   if (!user) {
-    throw new AppError(404, "User not found");
+    return res.status(404).json({ success: false, message: "User not found" });
   }
 
-  const newAccessToken = generateAccessToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+  // ✅ Generate new access token
+  const payload = { id: user.id, role: user.role };
+  const accessToken = generateAccessToken(payload);
 
-  const newRefreshToken = generateRefreshToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
-  res.cookie("refreshToken", newRefreshToken, {
-    httpOnly: true,
-    secure: config.nodeEnv === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
-    message: "Token refreshed successfully",
-    data: {
-      accessToken: newAccessToken,
-    },
+    message: "Access token refreshed successfully",
+    data: { accessToken },
   });
 });
 
-// =========================
-// ✅ Google OAuth Redirect
-// =========================
-export const googleLoginRedirect = catchAsync(async (req, res) => {
-  res.redirect(getGoogleAuthURL());
+// =============================================================Get all user==============================================
+const getAllUsers = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await userService.getAllUsers(req.query);
+
+  const response: ApiResponse = {
+    success: true,
+    message: "Users retrieved successfully",
+    data: result,
+  };
+
+  res.json(response);
 });
 
-// =========================
-// ✅ Google OAuth Callback
-// =========================
-export const googleCallback = catchAsync(async (req, res) => {
-  const code = req.query.code as string;
-  const { access_token } = await getGoogleTokens(code);
-  const userInfo = await getGoogleUserInfo(access_token);
+const getUserById = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const user = await userService.getUserById(id);
 
-  const user = await userServices.findOrCreateOAuthUser(
-    {
-      email: userInfo.email,
-      name: userInfo.name,
-      avatar: userInfo.picture,
-    },
-    OAuthProvider.GOOGLE
-  );
+  const response: ApiResponse = {
+    success: true,
+    message: "User retrieved successfully",
+    data: user,
+  };
 
-  if (user.method !== OAuthProvider.GOOGLE) {
-    const message = `User already registered with different auth method: ${user.method.toLowerCase()}`;
-    const encodedMessage = encodeURIComponent(message);
-    return res.redirect(`http://localhost:3000/oauth/error?status=400&message=${encodedMessage}`);
-  }
+  res.json(response);
+});
 
-  const accessToken = generateAccessToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+const updateUser = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const validatedData = updateUserSchema.parse(req.body);
+  const user = await userService.updateUser(id, validatedData);
 
-  const refreshToken = generateRefreshToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+  const payload = { id: user.id, role: user.role };
+  const accessToken = generateAccessToken(payload);
+  const refreshToken = generateRefreshToken(payload);
 
   res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: config.nodeEnv === "production",
-    sameSite: "strict",
+    ...cookieOptions,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  res.redirect(`http://localhost:3000/oauth/success?token=${accessToken}`);
+  res.cookie("accessToken", accessToken, {
+    ...cookieOptions,
+    maxAge: 15 * 60 * 1000,
+  });
+
+  const response: ApiResponse = {
+    success: true,
+    message: "User updated successfully",
+    data: { user, accessToken },
+  };
+
+  res.json(response);
 });
 
-// =========================
-// ✅ GitHub OAuth Redirect
-// =========================
-export const githubLoginRedirect = catchAsync(async (req, res) => {
-  res.redirect(getGithubAuthURL());
+const deleteUser = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await userService.deleteUser(id);
+
+  const response: ApiResponse = {
+    success: true,
+    message: result.message,
+  };
+
+  res.json(response);
 });
 
-// =========================
-// ✅ GitHub OAuth Callback
-// =========================
-export const githubCallback = catchAsync(async (req, res) => {
-  const code = req.query.code as string;
-
-  const { access_token } = await getGithubTokens(code);
-  const userInfo = await getGithubUserInfo(access_token);
-
-  const user = await userServices.findOrCreateOAuthUser(
-    {
-      email: userInfo.blog,
-      name: userInfo.name,
-      avatar: userInfo.avatar_url,
-    },
-    OAuthProvider.GITHUB
-  );
-
-  if (user.method !== OAuthProvider.GITHUB) {
-    const message = `User already registered with different auth method: ${user.method.toLowerCase()}`;
-    const encodedMessage = encodeURIComponent(message);
-    return res.redirect(`http://localhost:3000/oauth/error?status=400&message=${encodedMessage}`);
+const uploadAvatar = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: "No file uploaded",
+    });
   }
 
-  const accessToken = generateAccessToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+  const avatarUrl = (req.file as any).path;
+  const user = await userService.updateAvatar(id, avatarUrl);
 
-  const refreshToken = generateRefreshToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+  const response: ApiResponse = {
+    success: true,
+    message: "Avatar uploaded successfully",
+    data: user,
+  };
 
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: config.nodeEnv === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-
-  res.redirect(`http://localhost:3000/oauth/success?token=${accessToken}`);
+  res.json(response);
 });
+
+const logoutUser = catchAsyncHandler(async (_req: Request, res: Response) => {
+  res.clearCookie("refreshToken", cookieOptions);
+  res.status(200).json({ success: true, message: "User logged out successfully" });
+});
+
+
+
+
+// ✅ Final Export Object
+export const userController = {
+  registerUser,
+  loginUser,
+  refreshAccessToken,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  uploadAvatar,
+  logoutUser
+
+
+};

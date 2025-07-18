@@ -1,69 +1,67 @@
-import { Server } from "http";
-import app from "./app";
-import config from "./app/config";
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
 
-const port = config.port;
+import { notFound } from "./app/middleware/notFound";
+import { errorHandler } from "./app/middleware/errorHandler";
+import { initialRoute } from "./app/api";
+import { envVariable } from "./app/config";
 
-/**
- * Main function to start the HTTP server.
- * It listens on the configured port and sets up graceful shutdown handlers.
- */
-async function main() {
-  try {
-    // Start the Express server and keep a reference to the HTTP server instance
-    const server: Server = app.listen(port, () => {
-      console.log(`🚀 Server is running on port ${port}`);
-    });
 
-    /**
-     * Graceful Shutdown Handler for SIGTERM signal.
-     * This signal is sent by platforms like Kubernetes or Docker when stopping the container.
-     * The handler closes the HTTP server to stop accepting new requests,
-     * allowing existing connections to finish before process exit.
-     */
-    process.on("SIGTERM", () => {
-      console.log("⚠️ SIGTERM received: closing HTTP server...");
-      server.close(() => {
-        console.log("HTTP server closed gracefully.");
-        // TODO: Close DB connections or other resources here if needed
-      });
-    });
-
-    /**
-     * Graceful Shutdown Handler for SIGINT signal (Ctrl+C).
-     * Similar to SIGTERM but triggered on manual interrupt in terminal.
-     */
-    process.on("SIGINT", () => {
-      console.log("⚠️ SIGINT received: closing HTTP server...");
-      server.close(() => {
-        console.log("HTTP server closed gracefully.");
-        process.exit(0); // exit successfully
-      });
-    });
-  } catch (error) {
-    // If server startup fails, log the error and exit with failure code
-    console.error("❌ Failed to start the server:", error);
-    process.exit(1);
-  }
-}
+const app = express();
+const PORT = envVariable.PORT;
 
 /**
- * Global handler for uncaught exceptions.
- * Logs the error and terminates the process to avoid unknown state.
+ * ✅ Middleware Setup (Ordered by priority)
  */
-process.on("uncaughtException", (error) => {
-  console.error("❌ Uncaught Exception detected:", error);
-  process.exit(1);
+
+// 🍪 1️⃣ Cookie-parser - Parses cookies from the request header
+// Must be placed at the top so any following middleware (like auth) can access req.cookies
+app.use(cookieParser());
+
+// 🛡️ 2️⃣ Helmet - Helps secure the app by setting HTTP headers
+app.use(helmet());
+
+// 🌍 3️⃣ CORS - Allows cross-origin requests (e.g., from your frontend)
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true, // Required to send cookies from frontend to backend
+  })
+);
+
+// 📋 4️⃣ Morgan - Logs request details (method, URL, status, time, etc.)
+const customFormat =
+  ":method :url :status - :res[content-length] bytes - :response-time ms - :user-agent";
+app.use(morgan(customFormat));
+
+// 📦 5️⃣ Body Parsers - Parses incoming JSON and form data requests
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+/**
+ * 🔄 Routes
+ */
+
+// ✅ Basic Health Check route
+app.get("/", (req, res) => {
+  res.json({ status: "OK", message: "Akademi Backend is running!" });
 });
 
-/**
- * Global handler for unhandled promise rejections.
- * Logs the rejection reason and terminates the process for safety.
- */
-process.on("unhandledRejection", (reason) => {
-  console.error("❌ Unhandled Promise Rejection detected:", reason);
-  process.exit(1);
+// ✅ Main API entry point
+initialRoute(app);
+
+// ❌ 404 Not Found Handler - For undefined routes
+app.use(notFound);
+
+// ⚠️ Global Error Handler - Catches all thrown errors
+app.use(errorHandler);
+
+// 🚀 Start the Express server
+app.listen(PORT, () => {
+  console.log(`🚀 Akademi Backend running on port ${PORT}`);
 });
 
-// Start the server
-main();
+export default app;
