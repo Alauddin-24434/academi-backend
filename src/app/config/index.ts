@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const envVariable = {
-    PORT: process.env.PORT,
+    PORT: process.env.PORT || 5000,
 
 
     // JWT Secrets and Expiry
