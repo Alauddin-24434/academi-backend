@@ -8,12 +8,14 @@ import cookieParser from "cookie-parser";
 import { notFound } from "./app/middleware/notFound";
 import { errorHandler } from "./app/middleware/errorHandler";
 import { initialRoute } from "./app/api";
-import { envVariable } from "./app/config";
+import { envVariable } from "./app/config"; // make sure dotenv is NOT called here
 import { initSocketServer } from "./app/socket";
 
 const app = express();
 const server = http.createServer(app);
-const PORT = envVariable.PORT;
+
+const PORT = envVariable.PORT || 5000; // fallback if no env var set
+const clientURL = envVariable.CLIENT_URL || "http://localhost:3000";
 
 /**
  * ✅ Middleware Setup (Ordered by priority)
@@ -28,7 +30,7 @@ app.use(helmet());
 // 🌍 3️⃣ CORS
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: [clientURL],
     credentials: true,
   })
 );

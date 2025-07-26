@@ -5,8 +5,7 @@ dotenv.config();
 
 export const envVariable = {
     PORT: process.env.PORT || 5000,
-
-
+   
     // JWT Secrets and Expiry
     JWT_ACCESS_TOKEN_SECRET: process.env.JWT_ACCESS_TOKEN_SECRET!,
     JWT_REFRESH_TOKEN_SECRET: process.env.JWT_REFRESH_TOKEN_SECRET!,
