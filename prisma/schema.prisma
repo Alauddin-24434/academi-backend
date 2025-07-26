@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model AcademicSession {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  students  Student[]
+}
+
+model User {
+  id                String   @id @default(cuid())
+  generateStudentId String   @unique
+  email             String   @unique
+  password          String
+  role              Role
+  fullName          String
+  pasportPhoto      String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  studentId         String?
+  student           Student? @relation(fields: [studentId], references: [id])
+
+  @@map("users")
+}
+
+model Faculty {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  description String?
+  departments Department[]
+
+  @@map("faculties")
+}
+
+model Department {
+  id        String    @id @default(cuid())
+  name      String
+  code      String    @unique
+  facultyId String
+  students  Student[]
+  faculty   Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+
+  @@map("departments")
+}
+
+model Student {
+  id                String          @id @default(cuid())
+  generateStudentId String          @unique
+  fullName          String
+  fatherName        String
+  motherName        String
+  phone             String
+  address           String
+  passportPhoto     String
+  gender            Gender
+  dateOfBirth       String
+  status            StudentStatus   @default(PENDING)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  sessionId         String
+  departmentId      String
+  AcademicInfo      AcademicInfo?
+  department        Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  session           AcademicSession @relation(fields: [sessionId], references: [id])
+  payments          Payment[]
+  User              User[]
+}
+
+model AcademicInfo {
+  id                 String   @id @default(cuid())
+  registrationNumber String
+  rollNumber         String
+  session            String
+  generateStudentId  String   @unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  student            Student  @relation(fields: [generateStudentId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  transactionId String        @unique
+  amount        Float
+  status        PaymentStatus
+  paymentDate   DateTime
+  description   String?
+  studentId     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  student       Student?      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+  USER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum StudentStatus {
+  PENDING
+  APPROVE
+  GRADUATED
+  SUSPENDED
+}
+
+enum PaymentStatus {
+  COMPLETE
+  PENDING
+  CANCELED
+  FAILED
+}
+
+enum JoinRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
