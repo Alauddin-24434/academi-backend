@@ -43,15 +43,12 @@ const createStudent = async (data: IStudent) => {
     });
     if (existingUser) throw new AppError("Email already exists", 409);
 
-    // 4. Generate Student ID
-    const shortRandomId = Math.random().toString(36).substring(2, 8).toUpperCase(); // ABC123
-    const generateStudentId = `${session.name}-${shortRandomId}`; // 2025-ABC123
     const hashPassword = await bcrypt.hash(password, 10);
 
     // 5. Create student
     const student = await tx.student.create({
       data: {
-        generateStudentId,
+      
         fullName,
         fatherName,
         motherName,
@@ -74,7 +71,6 @@ const createStudent = async (data: IStudent) => {
         password: hashPassword,
         fullName,
         pasportPhoto: passportPhoto,
-        generateStudentId,
         studentId: student.id,
         role: "STUDENT",
       },

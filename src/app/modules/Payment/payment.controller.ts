@@ -3,7 +3,6 @@ import { catchAsync } from "../../utils/catchAsync";
 import { createPaymentSchema } from "./payment.schema";
 import { paymentService } from "./payment.service";
 import { generatePaymentHtml } from "../../views/payment.template";
-import { IPayment, } from "./payment.interface";
 import { v4 as uuidv4 } from 'uuid';
 //==================== Initiate Payment =========================//
 // This endpoint initiates a new payment and stores it in the database.

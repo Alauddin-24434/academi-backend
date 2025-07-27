@@ -1,14 +1,12 @@
+import { Gender } from "../../../../generated/prisma";
+import { StudentStatus } from "../../shared/shared";
 import { IPayment } from "../Payment/payment.interface";
 import { IUser } from "../User/user.interfcae";
 
-// enums
-export type Gender = "MALE" | "FEMALE" | "OTHER";
-export type StudentStatus = "PENDING" | "APPROVE" | "GRADUATED" | "SUSPENDED";
 
-// Student interface
+
 export interface IStudent {
   id: string;
-  generateStudentId: string;
   fullName: string;
   fatherName: string;
   motherName: string;
@@ -18,27 +16,15 @@ export interface IStudent {
   gender: Gender;
   dateOfBirth: string;
   status: StudentStatus;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string;  // ISO date string
+  updatedAt: string;  // ISO date string
   sessionId: string;
   departmentId: string;
-  email: string;
-  password: string,
+  email: string;       
+  password: string; 
 
   // Relations
-  payments: IPayment[];
-  User: IUser[];
-  AcademicInfo?: AcademicInfo;
-}
+  payments: IPayment[];     
+  User: IUser | null;      
 
-// AcademicInfo interface
-export interface AcademicInfo {
-  id: string;
-  registrationNumber: string;
-  rollNumber: string;
-  session: string;
-  generateStudentId: string;
-  createdAt: string;
-  updatedAt: string;
 }
-

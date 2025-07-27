@@ -17,22 +17,6 @@ model AcademicSession {
   students  Student[]
 }
 
-model User {
-  id                String   @id @default(cuid())
-  generateStudentId String   @unique
-  email             String   @unique
-  password          String
-  role              Role
-  fullName          String
-  pasportPhoto      String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  studentId         String?
-  student           Student? @relation(fields: [studentId], references: [id])
-
-  @@map("users")
-}
-
 model Faculty {
   id          String       @id @default(cuid())
   name        String       @unique
@@ -53,38 +37,64 @@ model Department {
   @@map("departments")
 }
 
-model Student {
-  id                String          @id @default(cuid())
-  generateStudentId String          @unique
-  fullName          String
-  fatherName        String
-  motherName        String
-  phone             String
-  address           String
-  passportPhoto     String
-  gender            Gender
-  dateOfBirth       String
-  status            StudentStatus   @default(PENDING)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  sessionId         String
-  departmentId      String
-  AcademicInfo      AcademicInfo?
-  department        Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  session           AcademicSession @relation(fields: [sessionId], references: [id])
-  payments          Payment[]
-  User              User[]
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  role         Role
+  fullName     String
+  pasportPhoto String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student   Student? @relation(fields: [studentId], references: [id])
+  studentId String?  @unique // each student can have only one user
+
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+  teacherId String?  @unique // optional: only for role = TEACHER
+
+  @@map("users")
 }
 
-model AcademicInfo {
-  id                 String   @id @default(cuid())
-  registrationNumber String
-  rollNumber         String
-  session            String
-  generateStudentId  String   @unique
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  student            Student  @relation(fields: [generateStudentId], references: [id], onDelete: Cascade)
+model Teacher {
+  id            String   @id @default(cuid())
+  fullName      String
+  fatherName    String
+  motherName    String
+  phone         String
+  passportPhoto String
+  gender        Gender
+  dateOfBirth   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  departmentId         String
+  teachingSubjectTitle String
+  teachingDescription  String?
+  user User?
+}
+
+model Student {
+  id            String        @id @default(cuid())
+  fullName      String
+  fatherName    String
+  motherName    String
+  phone         String
+  address       String
+  passportPhoto String
+  gender        Gender
+  dateOfBirth   String
+  status        StudentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  sessionId     String
+  departmentId  String
+
+  department Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  session    AcademicSession @relation(fields: [sessionId], references: [id])
+  payments   Payment[]
+
+  user User?
 }
 
 model Payment {
@@ -100,6 +110,17 @@ model Payment {
   student       Student?      @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("payments")
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  name        String
+  description String
+  date        DateTime
+  images      String[]    @default([])
+  status      EventStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 enum Role {
@@ -132,4 +153,10 @@ enum JoinRequestStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+enum EventStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
 }

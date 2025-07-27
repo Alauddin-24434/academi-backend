@@ -8,11 +8,13 @@ import { paymentRoutes } from "../modules/Payment/payment.route";
 import { academicSessionRoutes } from "../modules/AcademicSession/academicSession.route";
 
 import { dashboardRoutes } from "../modules/Dashboard/dashbord.routes";
+import { teacherRoutes } from "../modules/Teacher/teacher.route";
 
 export const routes = [
     { path: '/api/users', handler: userRoutes },
     { path: '/api/students', handler: studentRoutes },
-    { path: '/api/faculties', handler: facultyRoutes },
+    { path: '/api/students', handler: studentRoutes },
+    { path: '/api/teachers', handler: teacherRoutes },
     { path: '/api/departments', handler: departmentRoutes },
 
     { path: '/api/payments', handler: paymentRoutes },
