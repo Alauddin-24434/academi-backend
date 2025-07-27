@@ -115,10 +115,10 @@ model Payment {
 model Event {
   id          String      @id @default(cuid())
   name        String
-  description String
+  description String?
   date        DateTime
   images      String[]    @default([])
-  status      EventStatus @default(PENDING)
+  status      EventStatus @default(UPCOMING)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
@@ -126,7 +126,7 @@ model Event {
 enum Role {
   ADMIN
   STUDENT
-  USER
+  TEACHER
 }
 
 enum Gender {
@@ -156,7 +156,7 @@ enum JoinRequestStatus {
 }
 
 enum EventStatus {
-  PENDING
+  UPCOMING
   COMPLETED
   CANCELLED
 }

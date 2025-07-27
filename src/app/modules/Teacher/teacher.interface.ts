@@ -8,6 +8,8 @@ export interface ITeacher {
   motherName: string;
   phone: string;
   address: string;
+  email: string;
+  password:string;
   passportPhoto: string;
   gender: Gender;
   dateOfBirth: string;      

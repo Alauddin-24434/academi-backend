@@ -1,12 +1,12 @@
 export enum EventStatus {
-  PENDING = "PENDING",
-  ACTIVE = "ACTIVE",
+  UPCOMING = "UPCOMING",
+  CANCELLED="CANCELLED",
   COMPLETED = "COMPLETED",
 }
 
 export interface IEvent {
   name: string;
-  description: string;
+  description?: string;
   date: string;         // ISO datetime string
   images: string[];     // empty array by default
   status?: EventStatus; // optional, default PENDING

@@ -5,9 +5,10 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
 import { notFound } from "./app/middleware/notFound";
-import { errorHandler } from "./app/middleware/errorHandler";
+
 import { initialRoute } from "./app/api";
 import { envVariable } from "./app/config"; // make sure dotenv is NOT called here
+import globalErrorHandler from "./app/middleware/globalErrorHandeller";
 
 const app = express();
 
@@ -55,7 +56,7 @@ initialRoute(app);
 app.use(notFound);
 
 // ⚠️ Global Error Handler
-app.use(errorHandler);
+app.use(globalErrorHandler);
 
 
 // 🚀 Start the server

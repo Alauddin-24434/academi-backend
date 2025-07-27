@@ -1,12 +1,12 @@
 import { AppError } from "../../error/AppError";
 import { prisma } from "../../lib/prisma";
-import { ITeacher } from "./teacher.interface";  // আপনার Teacher interface অনুযায়ী টাইপ
+import { ITeacher } from "./teacher.interface"; 
 import bcrypt from "bcryptjs";
 
 // ====================================================
 // Create Teacher (Signup)
 // ====================================================
-const createTeacher = async (data: ITeacher & { password: string; email: string }) => {
+const createTeacher = async (data: ITeacher) => {
     const {
         fullName,
         fatherName,
@@ -72,7 +72,7 @@ const createTeacher = async (data: ITeacher & { password: string; email: string 
                 fullName,
                 pasportPhoto: passportPhoto,
                 teacherId: teacher.id,
-                role: "USER", // অথবা আপনার প্রয়োজনে "TEACHER" যদি থাকে enum এ
+                role: "TEACHER"
             },
         });
 

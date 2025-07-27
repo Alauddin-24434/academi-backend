@@ -18,6 +18,7 @@ export const routes = [
     { path: '/api/teachers', handler: teacherRoutes },
     { path: '/api/departments', handler: departmentRoutes },
     { path: '/api/events', handler: eventRoutes },
+    { path: '/api/faculties', handler: facultyRoutes },
 
     { path: '/api/payments', handler: paymentRoutes },
     { path: '/api/sessions', handler: academicSessionRoutes },

@@ -7,7 +7,7 @@ const createEvent = async (data: IEvent) => {
             name: data.name,
             description: data.description,
             date: new Date(data.date),
-            images: data.images || [],
+           
 
         },
     });

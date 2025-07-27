@@ -1,12 +1,14 @@
 import express from "express";
 
-import { upload } from "../../lib/cloudinary"; // অথবা যেখানে upload middleware আছে
+import { upload } from "../../lib/cloudinary"; 
 import { teacherController } from "../Teacher/teacher.controller";
+import { authenticate } from "../../middleware/authenticateHandler";
+import { authorize } from "../../middleware/authorizeHandler";
 
 const router = express.Router();
 
 // Create teacher with passportPhoto upload
-router.post("/", upload.single("passportPhoto"), teacherController.createTeacher);
+router.post("/", authenticate, authorize("ADMIN"), upload.single("passportPhoto"), teacherController.createTeacher);
 
 // Get all teachers
 router.get("/", teacherController.getAllTeachers);

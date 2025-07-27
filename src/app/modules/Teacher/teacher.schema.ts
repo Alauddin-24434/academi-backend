@@ -7,9 +7,7 @@ export const createTeacherSchema = z.object({
   fatherName: z.string().min(1, "Father's name is required"),
   motherName: z.string().min(1, "Mother's name is required"),
   phone: z
-    .string()
-    .length(11, "Invalid phone number")
-    .regex(/^01[3-9][0-9]{8}$/, "Invalid Bangladeshi phone number"),
+    .string().min(11, "Invalid Bangladeshi phone number"),
   address: z.string().min(1, "Address is required"),
   passportPhoto: z.string().min(1, "Passport photo is required"),
   gender: genderEnum,
