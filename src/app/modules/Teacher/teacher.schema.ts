@@ -9,7 +9,7 @@ export const createTeacherSchema = z.object({
   phone: z
     .string().min(11, "Invalid Bangladeshi phone number"),
   address: z.string().min(1, "Address is required"),
-  passportPhoto: z.string().min(1, "Passport photo is required"),
+  passportPhoto: z.string().optional(),
   gender: genderEnum,
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   departmentId: z.string().min(1, "Department ID is required"),

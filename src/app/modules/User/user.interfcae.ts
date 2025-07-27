@@ -1,7 +1,6 @@
 // User interface (brief)
 export interface IUser {
   id: string;
-  generateStudentId: string;
   email: string;
   password: string;
   role: "ADMIN" | "STUDENT" | "USER";
