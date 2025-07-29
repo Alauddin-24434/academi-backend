@@ -1,26 +1,16 @@
-export interface IErrorDetail {
-  path: string;
-  message: string;
-}
-
 export class AppError extends Error {
-  public statusCode: number;
-  public isOperational: boolean;
-  public errors: IErrorDetail[];  // multiple issues
+  public statusCode: number
+  public isOperational: boolean
 
-  constructor(
-    message: string,
-    statusCode: number = 500,
-    errorName?: string,
-    errors: IErrorDetail[] = []  // default empty array
-  ) {
-    super(message);
+  constructor(statusCode: number, message: string, isOperational = true, stack = "") {
+    super(message)
+    this.statusCode = statusCode
+    this.isOperational = isOperational
 
-    this.name = errorName ?? this.constructor.name;
-    this.statusCode = statusCode;
-    this.isOperational = true;
-    this.errors = errors;
-
-    Error.captureStackTrace(this, this.constructor);
+    if (stack) {
+      this.stack = stack
+    } else {
+      Error.captureStackTrace(this, this.constructor)
+    }
   }
 }

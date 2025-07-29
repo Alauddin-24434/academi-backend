@@ -1,11 +1,22 @@
+// validations/faculty.validation.ts
 import { z } from "zod";
 
-export const createFacultySchema = z.object({
-  name: z.string().min(1),
-  description: z.string().optional(),
-});
+export const createFacultyZodSchema = z.object({
+  body: z.object({
+    name: z
+      .string(
+        "Faculty name is required",
+      )
+      .min(2, "Name must be at least 2 characters long"),
 
-export const updateFacultySchema = z.object({
-  name: z.string().min(1).optional(),
-  description: z.string().optional(),
+    code: z
+      .string("Faculty code is required",
+      )
+      .min(2, "Code must be at least 2 characters"),
+
+    description: z
+      .string()
+      .optional()
+      .nullable(),
+  }),
 });

@@ -1,30 +1,57 @@
-import { Gender } from "../../../../generated/prisma";
-import { StudentStatus } from "../../shared/shared";
-import { IPayment } from "../Payment/payment.interface";
-import { IUser } from "../User/user.interfcae";
-
-
-
 export interface IStudent {
-  id: string;
-  fullName: string;
-  fatherName: string;
-  motherName: string;
-  phone: string;
-  address: string;
-  passportPhoto: string;
-  gender: Gender;
-  dateOfBirth: string;
-  status: StudentStatus;
-  createdAt: string;  // ISO date string
-  updatedAt: string;  // ISO date string
-  sessionId: string;
+  id: string
+  userId: string
+  studentId?: string
+  admissionDate?: Date
+  graduationDate?: Date
+  status: "PENDING" | "APPROVED" | "SUSPENDED" | "GRADUATED" | "DROPPED" | "TRANSFERRED"
+  program?: string
+  batch?: string
+  section?: string
+  cgpa?: number
+  totalCredits?: number
+  emergencyContact?: string
+  guardianName?: string
+  guardianPhone?: string
+  address?: string
+  bloodGroup?: string
+  medicalInfo?: any
+  extracurriculars?: any
+  passportPhoto: string
+  achievements?: any
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ICreateStudentInput {
+  userId: string
+  sessionId: string
+  fullName: string
+  fatherName: string
+  motherName: string
   departmentId: string;
-  email: string;       
-  password: string; 
+  adress: string;
+  passportPhoto: string
 
-  // Relations
-  payments: IPayment[];     
-  User: IUser | null;      
 
+
+}
+
+export interface IUpdateStudentInput {
+  program?: string
+  batch?: string
+  section?: string
+  cgpa?: number
+  totalCredits?: number
+  emergencyContact?: string
+  guardianName?: string
+  guardianPhone?: string
+  passportPhoto: string
+  address?: string
+  bloodGroup?: string
+  medicalInfo?: any
+  extracurriculars?: any
+  achievements?: any
+  isActive?: boolean
 }

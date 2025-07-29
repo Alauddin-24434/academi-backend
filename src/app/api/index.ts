@@ -1,36 +1,63 @@
-import { Application } from "express";
-import { userRoutes } from "../modules/User/user.routes";
-import { studentRoutes } from "../modules/Student/student.routes";
-import { facultyRoutes } from "../modules/Faculty/faculty.routes";
-import { departmentRoutes } from "../modules/Department/department.routes";
+import type { Application } from "express"
+import { authRoutes } from "../modules/Auth/auth.route"
+import { studentRoutes } from "../modules/Student/student.route"
+import { paymentRoutes } from "../modules/Payment/payment.route"
+import { adminRoutes } from "../modules/Admin/admin.route"
+import { userRoutes } from "../modules/User/user.routes"
+import { facultyRoutes } from "../modules/Faculty/faculty.routes"
+import { departmentRoutes } from "../modules/Department/department.routes"
+import { academicSessionRoutes } from "../modules/AcademicSession/academicSession.route"
+import { staffRoutes } from "../modules/Staff/staff.route"
+import { eventRoutes } from "../modules/Event/event.route"
+import { dashboardRoutes } from "../modules/Dashboard/overview.route"
 
-import { paymentRoutes } from "../modules/Payment/payment.route";
-import { academicSessionRoutes } from "../modules/AcademicSession/academicSession.route";
+const moduleRoutes = [
+  {
+    path: "/api/auth",
+    route: authRoutes,
+  },
+  {
+    path: "/api/users",
+    route: userRoutes,
+  },
+    {
+    path: "/api/admins",
+    route: adminRoutes,
+  },
+    {
+    path: "/api/dashboards",
+    route: dashboardRoutes,
+  },
+    {
+    path: "/api/faculties",
+    route: facultyRoutes,
+  },
+    {
+    path: "/api/departments",
+    route: departmentRoutes,
+  },
+    {
+    path: "/api/sessions",
+    route: academicSessionRoutes,
+  },
+  {
+    path: "/api/students",
+    route: studentRoutes,
+  },
+  {
+    path: "/api/payments",
+    route: paymentRoutes,
+  },
+  {
+    path: "/api/staffs",
+    route: staffRoutes,
+  },{
+    path: "/api/events",
+    route: eventRoutes,
+  },
 
-import { dashboardRoutes } from "../modules/Dashboard/dashbord.routes";
-import { teacherRoutes } from "../modules/Teacher/teacher.route";
-import { eventRoutes } from "../modules/Event/event.routes";
-
-export const routes = [
-    { path: '/api/users', handler: userRoutes },
-    { path: '/api/students', handler: studentRoutes },
-    { path: '/api/students', handler: studentRoutes },
-    { path: '/api/teachers', handler: teacherRoutes },
-    { path: '/api/departments', handler: departmentRoutes },
-    { path: '/api/events', handler: eventRoutes },
-    { path: '/api/faculties', handler: facultyRoutes },
-
-    { path: '/api/payments', handler: paymentRoutes },
-    { path: '/api/sessions', handler: academicSessionRoutes },
-
-    { path: '/api/overviews', handler: dashboardRoutes },
-
-
-];
-
+]
 
 export const initialRoute = (app: Application) => {
-    routes.forEach(route => {
-        app.use(route.path, route.handler);
-    });
-};
+  moduleRoutes.forEach((route) => app.use(route.path, route.route))
+}

@@ -5,6 +5,5 @@ export const notFound = (req: Request, res: Response) => {
     success: false,
     message: `Route ${req.originalUrl} not found`,
   }
-
   res.status(404).json(response)
 }

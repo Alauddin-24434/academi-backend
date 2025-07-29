@@ -3,15 +3,12 @@ export interface IUser {
   id: string;
   email: string;
   password: string;
-  role: "ADMIN" | "STUDENT" | "USER";
+  name: string;
+  role: "ADMIN" | "STUDENT" | "GUEST" |"STAFF";
   fullName: string;
-  pasportPhoto: string;
+  isActive: boolean;
+  avatar: string;
   createdAt: string;
   updatedAt: string;
-  studentId?: string;
-}
-
-export interface ILogin {
-  email: string;
-  password: string;
+  
 }

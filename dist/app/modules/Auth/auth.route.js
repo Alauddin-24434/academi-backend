@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.authRoutes = void 0;
+const express_1 = require("express");
+const auth_controller_1 = require("./auth.controller");
+const validateRequest_1 = require("../../middleware/validateRequest");
+const auth_validation_1 = require("./auth.validation");
+const cloudinary_1 = require("../../lib/cloudinary");
+const router = (0, express_1.Router)();
+router.post("/signup", cloudinary_1.upload.single("avatar"), (0, validateRequest_1.validateRequest)(auth_validation_1.registerValidationSchema), auth_controller_1.AuthController.register);
+router.post("/login", (0, validateRequest_1.validateRequest)(auth_validation_1.loginValidationSchema), auth_controller_1.AuthController.login);
+router.get("/refreshToken", auth_controller_1.AuthController.refreshAccessToken);
+router.post("/logout", auth_controller_1.AuthController.logout);
+exports.authRoutes = router;

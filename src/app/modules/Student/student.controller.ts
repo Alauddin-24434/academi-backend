@@ -1,94 +1,82 @@
+import type { Request, Response } from "express"
+import { catchAsyncHandler } from "../../utils/catchAsyncHandler"
+import { sendResponse } from "../../utils/sendResponse"
+import { studentService } from "./student.service"
 
-import { Request, Response } from "express";
-
-import { catchAsync } from "../../utils/catchAsync";
-import { createStudentSchema, updateStudentSchema } from "./student.schema";
-import { studentService } from "./student.service";
-
-import { AppError } from "../../error/AppError";
-import { createAccessToken, createRefreshToken } from "../../utils/jwt";
-import { cookieOptions } from "../../utils/cookieOptions";
-import { IStudent } from "./student.interface";
-
-//============================================ create Student and Signup==============================================================
-const createStudent = catchAsync(async (req: Request, res: Response) => {
-  const validatedData = createStudentSchema.parse(req.body);
-
-  // Passport photo validation
-  if (!req.file || !req.file.path) {
-    throw new AppError("Passport photo is required", 400);
+const createStudent = catchAsyncHandler(async (req: Request, res: Response) => {
+  const passportPhoto = req.file?.path;
+  const bodyData = {
+    ...req.body,
+    passportPhoto
   }
-
-  const passportPhoto = req.file.path;
-
-
-  // Prepare student data
-  const studentData = {
-    ...validatedData,
-    passportPhoto,
-  };
-
-  // Create student and update user role inside transaction
-  const result = await studentService.createStudent(studentData as IStudent);
-
-  const { student, user } = result;
-
-  // success
-  const payload = { id: user.id, role: user.role };
-  const accessToken = createAccessToken(payload);
-  const refreshToken = createRefreshToken(payload);
-
-  res.cookie("refreshToken", refreshToken, {
-    ...cookieOptions,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-
-  res.json({
+  const result = await studentService.createStudentService(bodyData)
+  sendResponse(res, {
+    statusCode: 201,
     success: true,
-    message: "Create Student and and signup sucesfully",
-    data: { user, accessToken, student },
-  });
-});
+    message: "Student created successfully",
+    data: result,
+  })
+})
 
+const getAllStudents = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await studentService.getAllStudentsService()
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Students retrieved successfully",
+    data: result,
+  })
+})
 
-// ======================================Get student byId===============================================
-const getStudent = catchAsync(async (req: Request, res: Response) => {
-  const student = await studentService.getStudentById(req.params.id);
-  res.status(200).json({ success: true, data: student });
-});
+const getStudentById = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  const result = await studentService.getStudentByIdService(id)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Student retrieved successfully",
+    data: result,
+  })
+})
 
-// =====================================get Student byUserid=================================================
-const getStudentsByUserId = catchAsync(async (req: Request, res: Response) => {
+const updateStudent = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  const result = await studentService.updateStudentService(id, req.body)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Student updated successfully",
+    data: result,
+  })
+})
 
-  const student = await studentService.getStudentsByUserId(req.params.userId);
+const updateStudentStatus = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { status, reason } = req.body
+  const result = await studentService.updateStudentStatusService(id, status, reason)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Student status updated successfully",
+    data: result,
+  })
+})
 
-  res.status(200).json({ success: true, data: student });
-});
-
-
-// ===============================================Get All students=========================================
-const getAllStudents = catchAsync(async (req: Request, res: Response) => {
-  const students = await studentService.getAllStudents();
-  res.status(200).json({ success: true, data: students });
-});
-
-
-// ================================================update student====================================
-
-const updateStudent = catchAsync(async (req: Request, res: Response) => {
-  const validatedData = updateStudentSchema.parse(req.body);
-  const updatedStudent = await studentService.updateStudentById(req.params.id, validatedData);
-  res.status(200).json({ success: true, data: updatedStudent });
-});
-
-
-
+const deleteStudent = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  await studentService.deleteStudentService(id)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Student deleted successfully",
+  })
+})
 
 export const studentController = {
   createStudent,
-  getStudent,
   getAllStudents,
+  getStudentById,
   updateStudent,
-  getStudentsByUserId,
-
-};
+  updateStudentStatus,
+  deleteStudent,
+}

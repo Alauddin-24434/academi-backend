@@ -1,11 +1,9 @@
-# Node modules
-node_modules/
-
-# Environment variables
+node_modules
+# Keep environment variables out of version control
 .env
 
-# Prisma generated files
-/generated/prisma/
+/generated/prisma
 
-# Build output (e.g., dist folder)
-dist/
+/src/generated/prisma
+
+/src/generated/prisma

@@ -1,6 +1,7 @@
 export interface IAcademicSession {
-  id: string;
+  id?: string;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

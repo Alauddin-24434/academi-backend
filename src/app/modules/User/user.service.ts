@@ -1,89 +1,63 @@
 
 
 
-import bcrypt from "bcryptjs";
+
 import { prisma } from "../../lib/prisma";
 
-import { AppError } from "../../error/AppError";
-import { ILogin } from "./user.interfcae";
-// 1. Create User
-const createUser = async (data: any) => {
-  const existingUser = await prisma.user.findUnique({
-    where: { email: data.email },
-  });
-
-  if (existingUser) {
-    throw new Error("User with this email already exists");
-  }
-
-  const hashPassword = await bcrypt.hash(data.password, 10);
-  const payload = {
-    ...data,
-    password: hashPassword,
-  }
-
-  return await prisma.user.create({
-    data: payload,
-    select: {
-      id: true,
-      password: true,
-      email: true,
-      role: true,
-      createdAt: true,
-    },
-  });
-};
 
 
-export const loginUserByEmail = async (body: ILogin) => {
-  const { email, password } = body;
-
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
-
-  // যদি user না মিলে
-  if (!user) {
-    throw new AppError("Invalid email or password", 400);
-    // অথবা: throw new Error("Invalid email or password");
-  }
-
-  // পাসওয়ার্ড মিল আছে কি না চেক
-  const isPasswordMatched = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordMatched) {
-    throw new AppError("Invalid email or password", 400);
-    // অথবা: throw new Error("Invalid email or password");
-  }
-
-  // পাসওয়ার্ড ও ইউজার ঠিক থাকলে রিটার্ন
-  return user;
-};
 
 
 
 // 2. Get All Users
-const getAllUsers = async (query:any) => {
+const getAllUsers = async (query: any, currentUserRole: string) => {
   const page = Number.parseInt(query.page || "1");
   const limit = Number.parseInt(query.limit || "10");
   const skip = (page - 1) * limit;
 
-  const where = query.search
+  // Search Filter
+  const searchFilter = query.search
     ? {
-      OR: [
-        { name: { contains: query.search, mode: "insensitive" as const } },
-        { email: { contains: query.search, mode: "insensitive" as const } },
-      ],
-    }
+        OR: [
+          { name: { contains: query.search, mode: "insensitive" as const } },
+          { email: { contains: query.search, mode: "insensitive" as const } },
+        ],
+      }
     : {};
 
+  // Role Filter Logic
+  let roleFilter: any = {};
+  if (currentUserRole === "ADMIN") {
+    roleFilter = {
+      role: {
+        in: ["GUEST", "STUDENT"],
+      },
+    };
+  } else if (currentUserRole !== "SUPER_ADMIN") {
+    // যদি SUPER_ADMIN না হয় এবং ADMIN না হয়, ফাঁকা রিটার্ন দাও
+    return {
+      data: [],
+      pagination: {
+        page,
+        limit,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrev: false,
+      },
+    };
+  }
+
+  const where = {
+    ...searchFilter,
+    ...roleFilter,
+  };
+
+  // Query Run
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       where,
       skip,
-      include: { student: true },
       take: limit,
       orderBy: { createdAt: "desc" },
     }),
@@ -103,11 +77,12 @@ const getAllUsers = async (query:any) => {
   };
 };
 
+
 // 3. Get User By ID
 const getUserById = async (id: string) => {
   const user = await prisma.user.findUnique({
     where: { id },
-    include: { student: {include:{department:{include:{faculty:true}}}}  }
+    include: { student: { include: { department: { include: { faculty: true } } } } }
   });
 
   if (!user) {
@@ -153,8 +128,7 @@ const deleteUser = async (id: string) => {
 
 // ✅ Final Export Object
 export const userService = {
-  createUser,
-  loginUserByEmail,
+
   getAllUsers,
   getUserById,
   updateUser,

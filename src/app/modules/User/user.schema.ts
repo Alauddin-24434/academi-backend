@@ -6,7 +6,7 @@ export const updateUserSchema = z.object({
   name: z.string().min(3, "Name should be at least 3 characters").optional(),
   password: z.string().min(6, "Password should be at least 6 characters").optional(),
   avatar: z.string().url().optional(),
-  role: z.enum(["ADMIN", "TEACHER", "STUDENT", "STAFF", "GUEST"]).optional(),
+  role: z.enum(["ADMIN", "SUPER_ADMIN", "STUDENT", "STAFF", "GUEST"]).optional(),
 
 });
 

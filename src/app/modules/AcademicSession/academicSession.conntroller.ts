@@ -1,32 +1,64 @@
 import { Request, Response } from "express";
-import { createAcademicSessionSchema } from "./academicSession.schema";
-import { catchAsync } from "../../utils/catchAsync";
+import { catchAsyncHandler } from "../../utils/catchAsyncHandler";
 import { academicSessionService } from "./academicSession.service";
-import { IAcademicSession } from "./academicSession.interface";
+import { sendResponse } from "../../utils/sendResponse";
 
-const createAcademicSessionHandler = catchAsync(async (req: Request, res: Response) => {
-
-  const validatedData = createAcademicSessionSchema.parse(req.body);
-
-  const session = await academicSessionService.createAcademicSession(validatedData as IAcademicSession);
-
-  res.status(201).json(session);
-
-})
-
-const getAllAcademicSessionsHandler = catchAsync(async (req: Request, res: Response) => {
-
-  const sessions = await academicSessionService.getAllAcademicSessions();
-  res.status(200).json({
+export const createAcademicSession = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await academicSessionService.createAcademicSession(req.body);
+  sendResponse(res, {
+    statusCode: 201,
     success: true,
-    message: "Session retrive sucessfully",
-    data: sessions
+    message: "Academic session created successfully",
+    data: result,
   });
+});
 
-})
+export const getAllAcademicSessions = catchAsyncHandler(async (_req: Request, res: Response) => {
+  const result = await academicSessionService.getAllAcademicSessions();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "All academic sessions fetched",
+    data: result,
+  });
+});
+
+export const getSingleAcademicSession = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await academicSessionService.getSingleAcademicSession(req.params.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Academic session fetched",
+    data: result,
+  });
+});
+
+export const updateAcademicSession = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await academicSessionService.updateAcademicSession(req.params.id, req.body);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Academic session updated",
+    data: result,
+  });
+});
+
+export const deleteAcademicSession = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await academicSessionService.deleteAcademicSession(req.params.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Academic session deleted (soft)",
+    data: result,
+  });
+});
+
 
 
 export const academicSessionController = {
-  createAcademicSessionHandler,
-  getAllAcademicSessionsHandler
+createAcademicSession,
+getSingleAcademicSession,
+getAllAcademicSessions,
+updateAcademicSession,
+deleteAcademicSession
 }

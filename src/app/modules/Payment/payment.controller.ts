@@ -1,27 +1,37 @@
-import { Request, Response } from "express";
-import { catchAsync } from "../../utils/catchAsync";
-import { createPaymentSchema } from "./payment.schema";
-import { paymentService } from "./payment.service";
-import { generatePaymentHtml } from "../../views/payment.template";
-import { v4 as uuidv4 } from 'uuid';
+import type { Request, Response } from "express"
+import { catchAsyncHandler } from "../../utils/catchAsyncHandler"
+import { sendResponse } from "../../utils/sendResponse"
+import { paymentService } from "./payment.service"
+
+import { generatePaymentHtml } from "../../paymentIntegration/generatePaymnetTemplate";
 //==================== Initiate Payment =========================//
 // This endpoint initiates a new payment and stores it in the database.
-const initiatePayment = catchAsync(async (req: Request, res: Response) => {
-  const validatedData = createPaymentSchema.parse(req.body);
-  const enrichedData = {
-    ...validatedData,
-    transactionId: uuidv4(),
+
+const generateTransactionId = () => {
+  const now = new Date();
+  const datePart = `${now.getMonth() + 1}${now.getDate()}`.padStart(4, "0"); // "0729"
+  const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase(); // "XYZ12"
+  return `TRX-${datePart}-${randomPart}`;
+};
+
+const initiatePayment = catchAsyncHandler(async (req: Request, res: Response) => {
+  const transactionId = generateTransactionId();
+
+  const bodyData = {
+    ...req.body,
+    transactionId,
   };
 
-  const payment = await paymentService.initiatePaymentInDb(enrichedData as any);
+  const payment = await paymentService.initiatePaymentInDb(bodyData);
+  const { payment_url } = payment;
 
-  res.status(201).json({ success: true, data: payment });
+  res.status(201).json({ success: true, url: payment_url });
 });
 
 //==================== Payment Success Callback =========================//
 // This endpoint is called by the payment gateway when the payment is successful.
 // It updates the payment status in the database and shows a success page.
-const paymentSuccess = catchAsync(async (req: Request, res: Response) => {
+const paymentSuccess = catchAsyncHandler(async (req: Request, res: Response) => {
   const { transactionId } = req.query;
   await paymentService.paymentSuccessInDb(transactionId as string);
   res.send(generatePaymentHtml("success"));
@@ -30,7 +40,7 @@ const paymentSuccess = catchAsync(async (req: Request, res: Response) => {
 //==================== Payment Failure Callback =========================//
 // This endpoint is called by the payment gateway when the payment fails.
 // It updates the payment status in the database and shows a failure page.
-const paymentFail = catchAsync(async (req: Request, res: Response) => {
+const paymentFail = catchAsyncHandler(async (req: Request, res: Response) => {
   const { transactionId } = req.query;
   await paymentService.paymentFailInDb(transactionId as string);
   res.send(generatePaymentHtml("failed"));
@@ -39,41 +49,101 @@ const paymentFail = catchAsync(async (req: Request, res: Response) => {
 //==================== Payment Cancellation Callback =========================//
 // This endpoint is called by the payment gateway when the user cancels the payment.
 // It updates the payment status in the database and shows a cancellation page.
-const paymentCancel = catchAsync(async (req: Request, res: Response) => {
+const paymentCancel = catchAsyncHandler(async (req: Request, res: Response) => {
   const { transactionId } = req.query;
   await paymentService.paymentCancelDb(transactionId as string);
   res.send(generatePaymentHtml("cancelled"));
 });
 
 //==================== Get Single Payment =========================//
-// This endpoint retrieves a single payment by its ID.
-const getPayment = catchAsync(async (req: Request, res: Response) => {
-  const payment = await paymentService.getPaymentById(req.params.id);
-  res.status(200).json({ success: true, data: payment });
-});
+// // This endpoint retrieves a single payment by its ID.
+// const getPayment = catchAsyncHandler(async (req: Request, res: Response) => {
+//   const payment = await paymentService.(req.params.id);
+//   res.status(200).json({ success: true, data: payment });
+// });
 
 //==================== Get All Payments =========================//
 // This endpoint retrieves all payment records from the database.
-const getAllPayments = catchAsync(async (req: Request, res: Response) => {
-  const payments = await paymentService.getAllPayments();
-  res.status(200).json({ success: true, data: payments });
-});
+// const getAllPayments = catchAsyncHandler(async (req: Request, res: Response) => {
+//   const payments = await paymentService.();
+//   res.status(200).json({ success: true, data: payments });
+// });
 
 
 
-//==================== Delete Payment =========================//
-// This endpoint deletes a payment record by its ID.
-const deletePayment = catchAsync(async (req: Request, res: Response) => {
-  await paymentService.deletePaymentById(req.params.id);
-  res.status(204).send();
-});
+const deletePayment = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  await paymentService.deletePaymentService(id)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Payment deleted successfully",
+  })
+})
+
+// Payment Type Controllers
+const createPaymentType = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await paymentService.createPaymentTypeService(req.body)
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Payment type created successfully",
+    data: result,
+  })
+})
+
+const getAllPaymentTypes = catchAsyncHandler(async (req: Request, res: Response) => {
+  console.log("b")
+  const result = await paymentService.getAllPaymentTypesService()
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Payment types retrieved successfully",
+    data: result,
+  })
+})
+
+const getPaymentTypeById = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  const result = await paymentService.getPaymentTypeByIdService(id)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Payment type retrieved successfully",
+    data: result,
+  })
+})
+
+const updatePaymentType = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  const result = await paymentService.updatePaymentTypeService(id, req.body)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Payment type updated successfully",
+    data: result,
+  })
+})
+
+const deletePaymentType = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  await paymentService.deletePaymentTypeService(id)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Payment type deleted successfully",
+  })
+})
 
 export const paymentController = {
   initiatePayment,
-  getPayment,
-  getAllPayments,
-  deletePayment,
-  paymentSuccess,
+  paymentCancel,
   paymentFail,
-  paymentCancel
-};
+  paymentSuccess,
+  deletePayment,
+  createPaymentType,
+  getAllPaymentTypes,
+  getPaymentTypeById,
+  updatePaymentType,
+  deletePaymentType,
+}

@@ -1,0 +1,51 @@
+import { z } from "zod"
+
+export const createEventZodSchema = z.object({
+  body: z.object({
+    name: z.string().min(1, "Event name is required"),
+    description: z.string().optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
+    location: z.string().min(1, "Location is required"),
+    venue: z.string().optional(),
+    category: z.string().min(1, "Category is required"),
+    type: z.enum(["PHYSICAL", "VIRTUAL", "HYBRID"]).default("PHYSICAL"),
+    maxAttendees: z.number().min(1).optional(),
+    registrationRequired: z.boolean().default(true),
+    registrationDeadline: z.string().optional(),
+    registrationFee: z.number().min(0).optional(),
+    contactEmail: z.string().email().optional(),
+    contactPhone: z.string().optional(),
+    organizerName: z.string().optional(),
+  }),
+})
+
+export const updateEventZodSchema = z.object({
+  body: z.object({
+    name: z.string().min(1).optional(),
+    description: z.string().optional(),
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional(),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
+    location: z.string().optional(),
+    venue: z.string().optional(),
+    category: z.string().optional(),
+    type: z.enum(["PHYSICAL", "VIRTUAL", "HYBRID"]).optional(),
+    maxAttendees: z.number().min(1).optional(),
+    expectedAttendees: z.number().min(1).optional(),
+    registrationRequired: z.boolean().optional(),
+    registrationDeadline: z.string().datetime().optional(),
+    registrationFee: z.number().min(0).optional(),
+    status: z.enum(["DRAFT", "UPCOMING", "ONGOING", "COMPLETED", "CANCELLED", "POSTPONED"]).optional(),
+    featuredImage: z.string().optional(),
+    bannerImage: z.string().optional(),
+    isFeatured: z.boolean().optional(),
+    isPublished: z.boolean().optional(),
+    contactEmail: z.string().email().optional(),
+    contactPhone: z.string().optional(),
+    organizerName: z.string().optional(),
+  }),
+})

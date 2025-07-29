@@ -1,34 +1,67 @@
-import { Request, Response } from "express";
-import { catchAsync } from "../../utils/catchAsync";
-import { createEventSchema, updateEventSchema } from "./event.schema";
-import { eventService } from "./event.service";
-import { IEvent } from "./event.interface";
+import type { Request, Response } from "express"
+import { catchAsyncHandler } from "../../utils/catchAsyncHandler"
+import { sendResponse } from "../../utils/sendResponse"
+import { eventService } from "./event.service"
 
-const createEvent = catchAsync(async (req: Request, res: Response) => {
-  const validatedData = createEventSchema.parse(req.body);
-  const event = await eventService.createEvent(validatedData as IEvent);
-  res.status(201).json({ success: true, data: event });
-});
+const createEvent = catchAsyncHandler(async (req: Request, res: Response) => {
+  console.log(req.body)
+  const result = await eventService.createEventService(req.body)
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Event created successfully",
+    data: result,
+  })
+})
 
-const getEvent = catchAsync(async (req: Request, res: Response) => {
-  const event = await eventService.getEventById(req.params.id);
-  res.status(200).json({ success: true, data: event });
-});
+const getAllEvents = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await eventService.getAllEventsService()
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Events retrieved successfully",
+    data: result,
+  })
+})
 
-const getAllEvents = catchAsync(async (req: Request, res: Response) => {
-  const events = await eventService.getAllEvents();
-  res.status(200).json({ success: true, data: events });
-});
+const getEventById = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  const result = await eventService.getEventByIdService(id)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Event retrieved successfully",
+    data: result,
+  })
+})
 
-const updateEvent = catchAsync(async (req: Request, res: Response) => {
-  const validatedData = updateEventSchema.parse(req.body);
-  const updatedEvent = await eventService.updateEventById(req.params.id, validatedData as IEvent);
-  res.status(200).json({ success: true, data: updatedEvent });
-});
+
+
+const updateEvent = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  const result = await eventService.updateEventService(id, req.body)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Event updated successfully",
+    data: result,
+  })
+})
+
+const deleteEvent = catchAsyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  await eventService.deleteEventService(id)
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Event deleted successfully",
+  })
+})
 
 export const eventController = {
   createEvent,
-  getEvent,
   getAllEvents,
+  getEventById,
   updateEvent,
-};
+  deleteEvent,
+}
